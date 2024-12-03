@@ -1,5 +1,7 @@
 from tradingview_ta import *
-import time
+import colorama, time
+from colorama import Fore
+colorama.init(autoreset=True)
 
 totalgain = 0
 
@@ -10,7 +12,9 @@ bitcoin = TA_Handler(
     interval="1m",
     timeout=None
 )
+print(f"{Fore.GREEN}online")
 
+#main functoin
 def main():
     global time
     while True:
@@ -21,22 +25,23 @@ def main():
         sma50 = bitcoin.get_indicators()['SMA50']
         sma200 = bitcoin.get_indicators()['SMA200']
         if trade == False :
+
+            #buy algo
             if sma20 < sma200:
                 time.sleep(150)
-                exp = time.time()
                 while sma200 > price:
                     price = bitcoin.get_indicators()['close']
                     sma20 = bitcoin.get_indicators()['SMA20']
                     sma50 = bitcoin.get_indicators()['SMA50']
                     sma200 = bitcoin.get_indicators()['SMA200']
-                    #if exp - time.time() > 1000:
-                        #main()
                 trade = True
                 price = bitcoin.get_indicators()['close']
                 rsi = bitcoin.get_indicators()['RSI']
                 priceTB = buy(price)
+                time.sleep(100)
+
+                #sell algo
                 while trade:
-                    time.sleep(100)
                     price = bitcoin.get_indicators()['close']
                     rsi = bitcoin.get_indicators()['RSI']
                     sma20 = bitcoin.get_indicators()['SMA20']
@@ -44,25 +49,36 @@ def main():
                     if sma50 < sma20:
                         time.sleep(100)
                         while trade:
+                            price = bitcoin.get_indicators()['close']
                             sma20 = bitcoin.get_indicators()['SMA20']
                             sma50 = bitcoin.get_indicators()['SMA50']
                             if sma50 > sma20:
-                                sell(price, priceTB)
+                                sell(priceTB)
+                                trade = False
+                                print("1")
+                            if ((price - priceTB) / price) * 10000 < -15:
+                                print("2")
+                                sell(priceTB)
                                 trade = False
 
-
+#buy function
 def buy(priceTB):
     global price
-    print("buy at " + str(priceTB))
+    print(f"{Fore.GREEN}buy " + "at " + str(priceTB))
     return priceTB
 
-def sell(priceTS, priceTB1):
+#sell functoin
+def sell(priceTB1):
     global totalgain
     priceTS = bitcoin.get_indicators()['close']
-    gain = (priceTS - priceTB1) / priceTB1
+    gain = ((priceTS - priceTB1) / priceTB1) * 100
     totalgain = totalgain + gain
-    print("sell at " + str(priceTS) + " with " + str(gain) + "% gain \n"+ str(totalgain) +"% total gain.")
-    time.sleep(150)
+    print(f"{Fore.RED}sell at " + str(priceTS) + f"{Fore.WHITE} with " + str(gain) + "% gain")
+    if totalgain > 0 :
+        print(f"{Fore.GREEN}" + str(totalgain)+"% total gain.")
+    else:
+        print(f"{Fore.RED}" + str(totalgain) + "% total gain.")
+    time.sleep(120)
 
 
 while True:

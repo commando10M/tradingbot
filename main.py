@@ -6,53 +6,50 @@ colorama.init(autoreset=True)
 totalgain = 0
 
 bitcoin = TA_Handler(
-    symbol="BTCUSD",
-    exchange="BITSTAMP",
+    symbol="SOLUSD",
+    exchange="COINBASE",
     screener="crypto",
     interval="1m",
     timeout=None
 )
+
 print(f"{Fore.GREEN}online")
 
 #main functoin
 def main():
     global time
+
     while True:
         trade = False
         price = bitcoin.get_indicators()['close']
-        rsi = bitcoin.get_indicators()['RSI']
         sma20 = bitcoin.get_indicators()['SMA20']
         sma50 = bitcoin.get_indicators()['SMA50']
         sma200 = bitcoin.get_indicators()['SMA200']
         if trade == False :
 
             #buy algo
-            if sma20 < sma200:
+            if sma50 < sma20 < price < sma200:
                 time.sleep(150)
                 while sma200 > price:
                     price = bitcoin.get_indicators()['close']
-                    sma20 = bitcoin.get_indicators()['SMA20']
-                    sma50 = bitcoin.get_indicators()['SMA50']
                     sma200 = bitcoin.get_indicators()['SMA200']
                 trade = True
                 price = bitcoin.get_indicators()['close']
-                rsi = bitcoin.get_indicators()['RSI']
                 priceTB = buy(price)
                 time.sleep(100)
 
                 #sell algo
                 while trade:
                     price = bitcoin.get_indicators()['close']
-                    rsi = bitcoin.get_indicators()['RSI']
                     sma20 = bitcoin.get_indicators()['SMA20']
                     sma50 = bitcoin.get_indicators()['SMA50']
                     if sma50 < sma20:
                         time.sleep(100)
                         while trade:
                             price = bitcoin.get_indicators()['close']
-                            sma20 = bitcoin.get_indicators()['SMA20']
+                            sma5 = bitcoin.get_indicators()['SMA5']
                             sma50 = bitcoin.get_indicators()['SMA50']
-                            if sma50 > sma20:
+                            if sma50 > sma5:
                                 sell(priceTB)
                                 trade = False
                                 print("1")
@@ -60,6 +57,18 @@ def main():
                                 print("2")
                                 sell(priceTB)
                                 trade = False
+
+#refresh
+def value():
+    price = bitcoin.get_indicators()['close']
+    sma5 = bitcoin.get_indicators()['SMA5']
+    sma10 = bitcoin.get_indicators()['SMA10']
+    sma20 = bitcoin.get_indicators()['SMA20']
+    sma50 = bitcoin.get_indicators()['SMA50']
+    sma200 = bitcoin.get_indicators()['SMA200']
+    rsi = bitcoin.get_indicators()['rsi']
+    return price, sma5, sma10, sma20, sma50, sma200, rsi
+
 
 #buy function
 def buy(priceTB):
